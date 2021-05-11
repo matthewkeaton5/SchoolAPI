@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 using Entities.Models;
+using Entities.RequestFeatures;
 
 namespace Contracts
 {
     public interface IUserRepository
     {
-        IEnumerable<User> AllUsers(bool changes);
-        User _user(Guid userID, bool changes);
+        PagedList<User> GetAllUsers(UserParameters userParameters, bool trackChanges);
+        User GetUser(Guid userId, bool trackChanges);
 
         void DeleteUser(User user);
         void CreateUser(User user);

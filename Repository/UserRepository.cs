@@ -1,9 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Contracts;
+﻿using Contracts;
 using Entities;
 using Entities.Models;
+using Entities.RequestFeatures;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Repository.Extensions;
+
+
 
 namespace Repository
 {
@@ -12,26 +16,33 @@ namespace Repository
         public UserRepository(RepositoryContext repositoryContext)
             : base(repositoryContext)
         {
+
+        }
+        public PagedList<User> GetAllUsers(UserParameters userParameters, bool trackChanges)
+        {
+            var user = FindAll(trackChanges)
+                .Search(userParameters.SearchTerm)
+                .Sort(userParameters.Order)
+                .ToList();
+
+            return PagedList<User>
+                .ToPagedList(user, userParameters.PageNumber, userParameters.PageSize);
+
         }
 
-        public IEnumerable<User> AllUsers(bool changes) =>
-            FindAll(changes).OrderBy(x => x.UserName).ToList();
 
-        public IEnumerable<User> GetByID(IEnumerable<Guid> Ids, bool changes) =>
-            FindByCondition(x => Ids.Contains(x.Id), changes).ToList();
 
-        public User _user(Guid userID, bool changes) =>
-            FindByCondition(x => x.Id.Equals(userID), changes).SingleOrDefault();
+        public User GetUser(Guid userId, bool trackChanges) =>
+            FindByCondition(c => c.Id.Equals(userId), trackChanges).SingleOrDefault();
+        public void CreateUser(User user) => Create(user);
+
+        public IEnumerable<User> GetByIds(IEnumerable<Guid> ids, bool trackChanges) =>
+            FindByCondition(x => ids.Contains(x.Id), trackChanges)
+                .ToList();
 
         public void DeleteUser(User user)
-        { 
+        {
             Delete(user);
         }
-
-
-        public void CreateUser(User user) =>
-            Create(user);
-
-
     }
 }

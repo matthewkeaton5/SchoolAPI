@@ -8,14 +8,18 @@ using Contracts;
 using AutoMapper;
 using Entities.DataTransferObjects;
 using Entities.Models;
+using ActionFilters;
+using Entities.RequestFeatures;
+using Newtonsoft.Json;
 
 namespace SchoolAPI.Controllers
 {
     [Route("api/users")]
     [ApiController]
+    [ApiExplorerSettings(GroupName = "v1")]
+
     public class UserController : ControllerBase
     {
-
         private readonly IRepositoryManager _repository;
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
@@ -25,109 +29,76 @@ namespace SchoolAPI.Controllers
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
+
         }
-
-        [HttpGet(Name = "AllUsers")]
-        public IActionResult GetUsers()
+        [HttpGet(Name = "getAllUsers")]
+        public IActionResult GetUsers([FromQuery] UserParameters userParameters)
         {
-            var users = _repository.User.AllUsers(changes: false);
+            var usersFromDb = _repository.User.GetAllUsers(userParameters, trackChanges: false);
+            Response.Headers.Add("X-Pagination",
+                JsonConvert.SerializeObject(usersFromDb.MetaData));
 
-            var userDto = _mapper.Map<IEnumerable<Users>>(users);
+            var userDto = _mapper.Map<IEnumerable<UsersDto>>(usersFromDb);
 
             return Ok(userDto);
-        }
 
-        [HttpGet("{id}", Name = "GetUser")]
+        }
+        [HttpGet("{id}", Name = "getUserById")]
+        [ServiceFilter(typeof(ValidateUserExistsAttribute))]
         public IActionResult GetUser(Guid id)
         {
-            try
-            {
-                var user = _repository.User._user(id, changes: false);
-                if (user == null)
-                {
-                    _logger.LogError("User has not been set");
-                    return NotFound();
-                }
-                else
-                {
-                    var userDto = _mapper.Map<Entities.Models.User>(user);
-                    return Ok(userDto);
 
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("User has not been set");
-                return StatusCode(500, "Internal server error");
-            }
+            var user = HttpContext.Items["user"] as User;
+
+            var userDto = _mapper.Map<UsersDto>(user);
+            return Ok(userDto);
+
+
         }
 
-        [HttpPost("{id}", Name = "GetUser")]
-        public IActionResult createUser([FromBody] UserCreation user)
+        [HttpPost(Name = "createUser")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public IActionResult CreateUser([FromBody] UserCreationDto user)
         {
-            if (user == null)
-            {
-                _logger.LogError("User has not been set");
-                return NotFound();
-            }
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid Model State");
-                return UnprocessableEntity(ModelState);
-            }
 
-            var _user = _mapper.Map<Entities.Models.User>(user);
+            var userEntity = _mapper.Map<User>(user);
 
-            _repository.User.CreateUser(_user);
+            _repository.User.CreateUser(userEntity);
             _repository.Save();
 
-            var returnUser = _mapper.Map<User>(_user);
+            var userToReturn = _mapper.Map<UsersDto>(userEntity);
 
-            return CreatedAtRoute("GetUser", new {id = returnUser.Id}, returnUser);
+            return CreatedAtRoute("getUserById", new { id = userToReturn.ID }, userToReturn);
         }
+
         [HttpPut("{id}")]
-        public IActionResult UpdateUser(Guid id, [FromBody] UserUpdate user)
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidateUserExistsAttribute))]
+        public IActionResult UpdateUser(Guid id, [FromBody] UserUpdateDto user)
         {
-            if (user == null)
-            {
-                _logger.LogError("User has not been set");
-                return BadRequest("User has not been set");
-            }
 
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid Model State");
-                return UnprocessableEntity(ModelState);
-            }
+            var userEntity = HttpContext.Items["user"] as User;
 
-            var _user = _mapper.Map<Entities.Models.User>(user);
-            if (_user == null)
-            {
-                _logger.LogInfo("Organization with that ID does not exist");
-                return NotFound();
-            }
-
-            _mapper.Map(user, _user);
+            _mapper.Map(user, userEntity);
             _repository.Save();
 
             return NoContent();
-
         }
+
         [HttpDelete("{id}")]
+        [ServiceFilter(typeof(ValidateUserExistsAttribute))]
         public IActionResult DeleteUser(Guid id)
         {
-            var _user = _repository.User._user(id, changes: false);
+            var user = HttpContext.Items["user"] as User;
 
-            if (_user == null)
-            {
-                _logger.LogInfo("Organization with that ID does not exist");
-                return NotFound();
-            }
-
-            _repository.User.DeleteUser(_user);
+            _repository.User.DeleteUser(user);
             _repository.Save();
 
             return NoContent();
         }
+
+
+
+
     }
 }

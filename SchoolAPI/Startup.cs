@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using NLog;
 using SchoolAPI.Extensions;
 using System.IO;
+using ActionFilters;
 
 namespace SchoolAPI
 {
@@ -37,6 +38,10 @@ namespace SchoolAPI
             });
             services.ConfigureSwagger();
             services.AddControllers();
+
+            services.AddScoped<ValidationFilterAttribute>();
+            services.AddScoped<ValidateOrgExistsAttribute>();
+            services.AddScoped<ValidateUserExistsAttribute>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

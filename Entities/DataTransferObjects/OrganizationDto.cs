@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Entities.DataTransferObjects
 {
-    public class Organization
+    public class OrganizationDto
     {
         public Guid Id { get; set; }
         public string OrgName { get; set; }

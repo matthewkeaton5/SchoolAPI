@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Entities.RequestFeatures;
+using Repository.Extensions;
 
 namespace Repository
 {
@@ -14,10 +16,18 @@ namespace Repository
             : base(repositoryContext)
         {
         }
-        public IEnumerable<Organization> GetAllOrganizations(bool trackChanges) =>
-          FindAll(trackChanges)
-          .OrderBy(c => c.OrgName)
-          .ToList();
+        public PagedList<Organization> GetAllOrganizations(OrganizationParameters orgParameters, bool trackChanges)
+        {
+            var organization = FindAll(trackChanges)
+                .Sort(orgParameters.Order)
+                .FilterCity(orgParameters.CityFilter)
+                .Search(orgParameters.SearchTerm)
+                .ToList();
+
+            return PagedList<Organization>
+                .ToPagedList(organization, orgParameters.PageNumber, orgParameters.PageSize);
+
+        }
 
         public Organization GetOrganization(Guid companyId, bool trackChanges) =>
          FindByCondition(c => c.Id.Equals(companyId), trackChanges)
