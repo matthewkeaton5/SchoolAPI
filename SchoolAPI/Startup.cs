@@ -37,7 +37,13 @@ namespace SchoolAPI
                 options.SuppressModelStateInvalidFilter = true;
             });
             services.ConfigureSwagger();
-            services.AddControllers();
+            services.AddControllers(config =>
+                {
+                    config.RespectBrowserAcceptHeader = true;
+                    config.ReturnHttpNotAcceptable = true;
+
+                }).AddXmlDataContractSerializerFormatters()
+                .AddCustomCSVFormatter();
 
             services.AddScoped<ValidationFilterAttribute>();
             services.AddScoped<ValidateOrgExistsAttribute>();
