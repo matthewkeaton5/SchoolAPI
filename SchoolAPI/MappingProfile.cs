@@ -22,6 +22,8 @@ namespace SchoolAPI
             CreateMap<Entities.DataTransferObjects.UserCreationDto, Entities.Models.User>();
 
             CreateMap<Entities.DataTransferObjects.UserUpdateDto, Entities.Models.User>();
+
+            CreateMap<UserRegistrationDto, User>();
         }
 
     }

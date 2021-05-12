@@ -10,9 +10,9 @@ namespace Entities.Configuration
 
         public void Configure(EntityTypeBuilder<User> builder)
         {
+            /*
             builder.HasData
             (
-
                 new User
                 {
                     Id = new Guid("80abbca8-664d-4b20-b5de-024705497d4a"),
@@ -32,6 +32,7 @@ namespace Entities.Configuration
                     OrganizationId = new Guid("3d490a70-94ce-4d15-9494-5248280c2ce3")
                 }
             );
+            */
         }
     }
 }

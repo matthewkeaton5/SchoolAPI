@@ -6,8 +6,10 @@ namespace Entities.DataTransferObjects
 {
     public class UsersDto
     {
+        /*
         public Guid ID { get; set; }
 
         public string UserName { get; set; }
+        */
     }
 }

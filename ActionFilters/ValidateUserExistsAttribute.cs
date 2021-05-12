@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ActionFilters
 {
-    public class ValidateUserExistsAttribute 
+    public class ValidateUserExistsAttribute : IAsyncActionFilter
     {
         private readonly IRepositoryManager _repository;
         private readonly ILoggerManager _logger;

@@ -56,20 +56,6 @@ namespace SchoolAPI.Controllers
 
         }
 
-        [HttpPost(Name = "createUser")]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public IActionResult CreateUser([FromBody] UserCreationDto user)
-        {
-
-            var userEntity = _mapper.Map<User>(user);
-
-            _repository.User.CreateUser(userEntity);
-            _repository.Save();
-
-            var userToReturn = _mapper.Map<UsersDto>(userEntity);
-
-            return CreatedAtRoute("getUserById", new { id = userToReturn.ID }, userToReturn);
-        }
 
         [HttpPut("{id}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
